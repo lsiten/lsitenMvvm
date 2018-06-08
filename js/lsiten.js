@@ -8,14 +8,47 @@
  * 2、watcher-更新->view
  */
 
- var lsiten = function () {
-  this.watcher = new lsitenWatcher();
+ var lsiten = function (options) {
+  this.data = options.data;
+  this.methods = options.methods;
+  let _this = this;
+  Object.keys(this.data).forEach(key =>{
+    this.proxyKeys(key);
+  })
+  lsitenObserver(this.data);
+  new lsitenCompile(options.el, this);
+  typeof options.mounted === 'function' && options.mounted.call(this);
  }
 
  lsiten.prototype = {
-  constructor: lsiten
+  constructor: lsiten,
+  // data的代理
+  proxyKeys: function (key) {
+    Object.defineProperty(this, key, {
+      enumerable: false,
+      configurable: true,
+      get: () => {
+        return this.data[key];
+      },
+      set: newVal => {
+        this.data[key] = newVal;
+      }
+    })
+  }
  }
 
 
+let myLsiten = new lsiten({
+  data: {
+    a: 1,
+    b: 2
+  },
+  el: '#test',
+  methods: {
+    test: () => {
+      console.log(this.a);
+    }
+  }
+})
 
- console.log(new lsiten());
+ console.log(myLsiten, myLsiten.methods.test());
